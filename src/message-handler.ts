@@ -1,32 +1,11 @@
-import RsnChat from "rsnchat";
 import { type Client, type Message } from "whatsapp-web.js";
-import { Database } from "./database";
+import { userBanned } from "./database";
 import { WhatsAppSticker } from "./features";
+import { AIMessageHandler, BaseMessageHandler } from "./handler";
 import { templateLoader } from "./utils";
 
-const admin = "6285710245114";
-const { db } = Database;
-
-function sendError(message: Message) {
-  message.react("❌");
-  message.reply("Maaf, sepertinya ada yang error dengan fitur ini ૮(˶╥︿╥)ა");
-}
-
-function sendBannedMessage(message: Message) {
-  message.react("❌");
-  message.reply(
-    "Maaf, kamu dilarang menggunakan bot ini. Jika kamu ingin melepas larangan ini, silahkan kontak admin bot, Terima kasih."
-  );
-}
-
-class MessageHandler {
-  message: Message;
-  client: Client;
-
-  command: string;
-  text: string;
-
-  rsnchat: RsnChat;
+class MessageHandler extends BaseMessageHandler {
+  ai: AIMessageHandler;
 
   /**
    * MessageHandler
@@ -35,17 +14,9 @@ class MessageHandler {
    * @param {Client} client WhatsApp Web Client
    */
   constructor(message: Message, client: Client) {
-    const rawMessage = message.body;
-    const command = rawMessage.split("!")[0]?.trim() || "";
-    const text = rawMessage.replace(`${command}!`, "").trim() || "";
+    super(message, client);
 
-    this.rsnchat = new RsnChat(process.env.RSNCHAT_API_KEY || "");
-
-    this.message = message;
-    this.client = client;
-
-    this.command = command.toLowerCase();
-    this.text = text;
+    this.ai = new AIMessageHandler(message, client);
 
     this.switchCommand();
   }
@@ -53,58 +24,43 @@ class MessageHandler {
   private switchCommand() {
     switch (this.command) {
       case "bot":
-        this.message.reply("Hah?");
-        break;
+        return this.message.reply("Hah?");
 
       case "menu":
-        this.showMenu();
-        break;
+        return this.showMenu();
 
       case "sticker":
-        this.createSticker();
-        break;
+        return this.createSticker();
 
       // AI
       case "chatgpt":
-        this.askGPT();
-        break;
+        return this.ai.askGPT();
+
+      case "bard":
+        return this.ai.askBard();
 
       case "openchat":
-        this.askOpenChat();
-        break;
+        return this.ai.askOpenChat();
 
       case "gemini":
-        this.askGemini();
-        break;
+        return this.ai.askGemini();
 
       case "llama":
-        this.askLlaMa();
-        break;
+        return this.ai.askLlaMa();
+
+      case "prodia":
+        return this.ai.askProdia();
 
       // Special
       case "ban":
-        this.banUser();
-        break;
+        return this.banUser();
 
       case "unban":
-        this.unbanUser();
-        break;
+        return this.unbanUser();
 
       default:
         break;
     }
-  }
-
-  /**
-   * Check if user has been banned or not
-   * @returns {Promise<boolean>}
-   */
-  private async isBanned(): Promise<boolean> {
-    const user = await this.message.getContact();
-    const db = Database.db;
-    const isBannedUser = await db.ban.isBanned(user.number);
-
-    return isBannedUser;
   }
 
   /**
@@ -114,7 +70,7 @@ class MessageHandler {
     const isUserBanned = await this.isBanned();
 
     if (isUserBanned) {
-      sendBannedMessage(this.message);
+      this.sendBannedMessage();
       return;
     }
 
@@ -123,8 +79,7 @@ class MessageHandler {
 
       this.message.reply(menu);
     } catch (error) {
-      console.error(error);
-      sendError(this.message);
+      this.sendErrorMessage(error);
     }
   }
 
@@ -134,22 +89,22 @@ class MessageHandler {
   private async createSticker() {
     const isUserBanned = await this.isBanned();
 
-    this.message.react("⏳");
-
     if (isUserBanned) {
-      sendBannedMessage(this.message);
+      this.sendBannedMessage();
       return;
     }
 
+    this.message.react("⏳");
+
     try {
       const media = await WhatsAppSticker.getMedia(this.message);
-      // const user = await this.message.getContact();
+      const user = await this.message.getContact();
 
       this.client.sendMessage(this.message.from, media, {
         sendMediaAsSticker: true,
         stickerAuthor: "Hiantzz!",
         stickerName: "Sticker!",
-        // mentions: [user.id.user],
+        mentions: [user.id._serialized],
       });
 
       const chat: any = await this.message.getChat();
@@ -157,7 +112,7 @@ class MessageHandler {
       if (chat.isGroup) {
         const participants = chat.groupMetadata?.participants || [];
         const bot = participants.find(
-          ({ id }: any) => id.user === "6285880232033"
+          ({ id }: any) => id.user === (process.env.BOT_NUMBER || "")
         );
 
         if (bot.isAdmin) {
@@ -179,174 +134,53 @@ class MessageHandler {
   }
 
   /**
-   * ChatGPT
-   */
-  private async askGPT() {
-    const isUserBanned = await this.isBanned();
-
-    if (isUserBanned) {
-      sendBannedMessage(this.message);
-      return;
-    }
-
-    if (!this.text) {
-      let tutorial = await templateLoader("ask-ai");
-
-      this.message.react("❌");
-      this.message.reply(tutorial.replace(/_COMMAND_/gi, "chatgpt!"));
-      return;
-    }
-
-    this.message.react("⏳");
-
-    try {
-      const response = await this.rsnchat.gpt(this.text);
-
-      this.message.react("✅");
-      this.message.reply(response.message);
-    } catch {
-      sendError(this.message);
-    }
-  }
-
-  /**
-   * OpenChat
-   */
-  private async askOpenChat() {
-    const isUserBanned = await this.isBanned();
-
-    if (isUserBanned) {
-      sendBannedMessage(this.message);
-      return;
-    }
-
-    if (!this.text) {
-      let tutorial = await templateLoader("ask-ai");
-
-      this.message.react("❌");
-      this.message.reply(tutorial.replace(/_COMMAND_/gi, "openchat!"));
-      return;
-    }
-
-    this.message.react("⏳");
-
-    try {
-      const response = await this.rsnchat.openChat(this.text);
-
-      this.message.react("✅");
-      this.message.reply(response.message);
-    } catch {
-      sendError(this.message);
-    }
-  }
-
-  /**
-   * Gemini
-   */
-  private async askGemini() {
-    const isUserBanned = await this.isBanned();
-
-    if (isUserBanned) {
-      sendBannedMessage(this.message);
-      return;
-    }
-
-    if (!this.text) {
-      let tutorial = await templateLoader("ask-ai");
-
-      this.message.react("❌");
-      this.message.reply(tutorial.replace(/_COMMAND_/gi, "openchat!"));
-      return;
-    }
-
-    this.message.react("⏳");
-
-    try {
-      const response = await this.rsnchat.gemini(this.text);
-
-      this.message.react("✅");
-      this.message.reply(response.message);
-    } catch {
-      sendError(this.message);
-    }
-  }
-
-  /**
-   * LlaMa
-   */
-  private async askLlaMa() {
-    const isUserBanned = await this.isBanned();
-
-    if (isUserBanned) {
-      sendBannedMessage(this.message);
-      return;
-    }
-
-    if (!this.text) {
-      let tutorial = await templateLoader("ask-ai");
-
-      this.message.react("❌");
-      this.message.reply(tutorial.replace(/_COMMAND_/gi, "openchat!"));
-      return;
-    }
-
-    this.message.react("⏳");
-
-    try {
-      const response = await this.rsnchat.llama(this.text);
-
-      this.message.react("✅");
-      this.message.reply(response.message);
-    } catch {
-      sendError(this.message);
-    }
-  }
-
-  /**
    * Ban user
    */
   private async banUser() {
     this.message.react("⏳");
 
     const userContact = await this.message.getContact();
-    const isAdmin = admin === userContact.number;
+    const isDeveloper =
+      (process.env.DEVELOPER_NUMBER || "") === userContact.number;
 
-    if (!isAdmin) {
+    if (!isDeveloper) {
       this.message.react("❌");
-      this.message.reply("Fitur ini hanya digunakan khusus untuk admin");
+      this.message.reply("Fitur ini hanya digunakan khusus untuk Developer");
       return;
     }
 
-    const { db } = Database;
     const mentionedUser = await this.message.getMentions();
 
     if (mentionedUser.length === 0 && this.message.hasQuotedMsg) {
       const quotedMessage = await this.message.getQuotedMessage();
       const contact = await quotedMessage.getContact();
 
-      if (contact.isMe || contact.number === admin) {
+      if (
+        contact.isMe ||
+        contact.number === (process.env.DEVELOPER_NUMBER || "")
+      ) {
         this.message.react("❌");
-        this.message.reply("Bot atau developer tidak dapat di ban!");
+        this.message.reply("Bot atau Developer tidak dapat di ban!");
 
         return;
       } else {
-        const isBanned = await db.ban.isBanned(contact.number);
+        const isBanned = await userBanned.isBanned(contact.number);
         // Ban user
-        if (!isBanned) await db.ban.add(contact.number);
+        if (!isBanned) await userBanned.ban(contact.number);
       }
 
       this.message.react("✅");
     } else if (mentionedUser.length > 0) {
       mentionedUser.forEach(async (user) => {
-        if (user.isMe || user.number === admin) {
+        if (user.isMe || user.number === (process.env.DEVELOPER_NUMBER || "")) {
           this.message.react("❌");
-          this.message.reply("Bot atau developer tidak dapat di ban!");
+          this.message.reply("Bot atau Developer tidak dapat di ban!");
 
           return;
         } else {
-          const isBanned = await db.ban.isBanned(user.number);
+          const isBanned = await userBanned.isBanned(user.number);
           // Ban user
-          if (!isBanned) await db.ban.add(user.number);
+          if (!isBanned) await userBanned.ban(user.number);
         }
       });
 
@@ -363,11 +197,12 @@ class MessageHandler {
     this.message.react("⏳");
 
     const userContact = await this.message.getContact();
-    const isAdmin = admin === userContact.number;
+    const isDeveloper =
+      (process.env.DEVELOPER_NUMBER || "") === userContact.number;
 
-    if (!isAdmin) {
+    if (!isDeveloper) {
       this.message.react("❌");
-      this.message.reply("Fitur ini hanya digunakan khusus untuk admin");
+      this.message.reply("Fitur ini hanya digunakan khusus untuk Developer");
       return;
     }
 
@@ -377,15 +212,18 @@ class MessageHandler {
       const quotedMessage = await this.message.getQuotedMessage();
       const contact = await quotedMessage.getContact();
 
-      if (contact.isMe || contact.number === admin) {
+      if (
+        contact.isMe ||
+        contact.number === (process.env.DEVELOPER_NUMBER || "")
+      ) {
         this.message.react("❌");
-        this.message.reply("Bot atau developer tidak dapat di unban!");
+        this.message.reply("Bot atau Developer tidak dapat di unban!");
       } else {
-        const isBanned = await db.ban.isBanned(contact.number);
+        const isBanned = await userBanned.isBanned(contact.number);
 
         if (isBanned) {
           // Unban user
-          await db.ban.remove(contact.number);
+          await userBanned.unban(contact.number);
 
           this.message.react("✅");
         } else {
@@ -394,19 +232,19 @@ class MessageHandler {
       }
     } else if (mentionedUser.length > 0) {
       mentionedUser.forEach(async (user) => {
-        if (user.isMe || user.number === admin) {
+        if (user.isMe || user.number === (process.env.DEVELOPER_NUMBER || "")) {
           this.message.react("❌");
-          this.message.reply("Bot atau developer tidak dapat di unban!");
+          this.message.reply("Bot atau Developer tidak dapat di unban!");
 
           return;
         } else {
-          const isBanned = await db.ban.isBanned(user.number);
+          const isBanned = await userBanned.isBanned(user.number);
 
           if (isBanned) {
             // Unban user
-            await db.ban.remove(user.number);
+            await userBanned.unban(user.number);
           } else {
-            console.log("user not banned");
+            console.log("user is not banned");
           }
         }
       });

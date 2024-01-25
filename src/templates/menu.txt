@@ -12,9 +12,11 @@ AI
 -  *openchat!*
 -  *gemini!*
 -  *llama!*
+-  *bard!* (gunakan bahasa inggris)
+-  *prodia!* (AI image generation)
 
 --------------------------------------------------------
-SUPER SPECIAL
+Developer 
 --------------------------------------------------------
 -  *ban!*
 -  *unban!*

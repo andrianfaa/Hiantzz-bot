@@ -1,7 +1,7 @@
+import dotenv from "dotenv";
 import qrcode from "qrcode-terminal";
 import WAWebJS from "whatsapp-web.js";
 import MessageHandler from "./src/message-handler";
-import dotenv from "dotenv";
 
 dotenv.config();
 
