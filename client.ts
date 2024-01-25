@@ -6,7 +6,12 @@ import MessageHandler from "./src/message-handler";
 dotenv.config();
 
 (() => {
-  const client = new WAWebJS.Client({});
+  const client = new WAWebJS.Client({
+    puppeteer: {
+      headless: true,
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    },
+  });
 
   client.initialize();
 
