@@ -1,0 +1,25 @@
+*Hiantzz! menu* (Under development)
+
+Berikut daftar perintah yang tersedia saat ini.
+
+-  *menu!*
+-  *sticker!*
+
+--------------------------------------------------------
+AI
+--------------------------------------------------------
+-  *chatgpt!*
+-  *openchat!*
+-  *gemini!*
+-  *llama!*
+
+--------------------------------------------------------
+SUPER SPECIAL
+--------------------------------------------------------
+-  *ban!*
+-  *unban!*
+
+
+Untuk menggunakan fitur diatas, cukup ketik dengan format dibawah ini
+
+```<perintah> <text>```

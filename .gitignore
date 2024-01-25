@@ -1,0 +1,11 @@
+# Environment file
+.env
+.env*.local
+.env*.development
+.env*.production
+
+# Folder
+node_modules/
+build/
+.wwebjs_cache/
+data/

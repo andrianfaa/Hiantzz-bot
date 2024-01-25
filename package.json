@@ -1,0 +1,35 @@
+{
+  "name": "hiantzz-bot",
+  "version": "1.0.1",
+  "description": "",
+  "main": "client.ts",
+  "engineStrict": true,
+  "engines": {
+    "node": "v21.2.0",
+    "npm": "v10.2.3"
+  },
+  "scripts": {
+    "start": "node \"./build/client.js\"",
+    "dev": "tsx \"./client.ts\"",
+    "build": "tsc"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/dotenv": "^8.2.0",
+    "@types/node": "^20.11.5",
+    "dotenv": "^16.3.2",
+    "nodemon": "^3.0.3",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "@types/qrcode-terminal": "^0.12.2",
+    "axios": "^1.6.5",
+    "nayan-media-downloader": "^2.0.2",
+    "qrcode-terminal": "^0.12.0",
+    "rsnchat": "^2.0.7",
+    "whatsapp-web.js": "^1.23.1-alpha.4"
+  }
+}
