@@ -181,7 +181,7 @@ class AIMessageHandler extends DefaultMessageHandler {
       return;
     }
 
-    if (!this.text || this.command.toLowerCase() === "prodia") {
+    if (!this.text) {
       let tutorial = await templateLoader("ask-prodia");
       const media = await MessageMedia.fromUrl(
         "https://cdn.knoji.com/images/logo/prodia-ai.jpg?fit=contain&trim=true&flatten=true&extend=25&width=1200&height=630"
