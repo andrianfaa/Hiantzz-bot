@@ -58,8 +58,8 @@ class MessageHandler extends BaseMessageHandler {
         return this.ai.askProdia();
 
       // Social Media Downloader
-      case "ig":
-        return this.socialMediaDownloader.instagramDownloader();
+      case "reels":
+        return this.socialMediaDownloader.reelsDownloader();
 
       case "tiktok":
         return this.socialMediaDownloader.tiktokDownloader();

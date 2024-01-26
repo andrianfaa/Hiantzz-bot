@@ -28,12 +28,17 @@ class SocialMediaDownloaderMessageHandler extends BaseMessageHandler {
       }
 
       if (extension !== ".mp4") {
-        const thumbnailAsMedia = await MessageMedia.fromUrl(url, {
-          unsafeMime: true,
-        });
+        let tutorial = await templateLoader("social-media");
 
-        this.message.reply(thumbnailAsMedia);
-        this.message.react("✅");
+        this.message.react("❌");
+        this.message.reply(
+          tutorial
+            .replace(/_COMMAND_/gi, "ig!")
+            .replace(
+              /_URL_/gi,
+              "https://www.instagram.com/reel/CzLzuUuJf5V/?igsh=eThxd2x0N2Z0cGkx"
+            )
+        );
         return;
       }
 
@@ -72,7 +77,7 @@ class SocialMediaDownloaderMessageHandler extends BaseMessageHandler {
     }
   }
 
-  async instagramDownloader() {
+  async reelsDownloader() {
     if (!this.text) {
       let tutorial = await templateLoader("social-media");
 
@@ -88,7 +93,7 @@ class SocialMediaDownloaderMessageHandler extends BaseMessageHandler {
       return;
     } else if (
       this.text.match("facebook.com") &&
-      !this.text.match("instagram.com")
+      !this.text.match("instagram.com/reel/")
     ) {
       this.message.react("❌");
       this.message.reply(

@@ -14,7 +14,7 @@ Berikut daftar perintah yang tersedia saat ini.
 -   ```prodia!```     (AI image generator)
 
 *Social Media Downloader*
--   ```ig!```
+-   ```reels!```     (Instagram reels downloader)
 
 *Developer*
 -   ```ban!```   
