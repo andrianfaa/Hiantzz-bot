@@ -1,4 +1,4 @@
-import RsnChat from "rsnchat";
+import { RsnChat } from "rsnchat";
 import { MessageMedia, type Client, type Message } from "whatsapp-web.js";
 import { prodiaModels } from "../constants";
 import { templateLoader } from "../utils";
@@ -221,15 +221,20 @@ class AIMessageHandler extends DefaultMessageHandler {
         model.trim()
       );
 
-      const media = new MessageMedia(
-        "image/png",
-        response.base64?.replace(/data:image\/png;base64,/gi, "")
-      );
+      if (typeof response !== "string" && "base64" in response) {
+        const media = new MessageMedia(
+          "image/png",
+          response.base64?.replace(/data:image\/png;base64,/gi, "")
+        );
 
-      this.message.react("✅");
-      this.message.reply(media, this.message.from, {
-        caption: `*Prompt*: ${prompt.trim()}\n*Negative prompt*: ${negativePrompt.trim()}\n\n*Model*: ${model.trim()}`,
-      });
+        this.message.react("✅");
+        this.message.reply(media, this.message.from, {
+          caption: `*Prompt*: ${prompt.trim()}\n*Negative prompt*: ${negativePrompt.trim()}\n\n*Model*: ${model.trim()}`,
+        });
+        return;
+      }
+
+      this.sendErrorMessage(new Error(response));
     } catch (error) {
       this.sendErrorMessage(error);
     }
