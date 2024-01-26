@@ -1,6 +1,6 @@
 import dotenv from "dotenv";
 import qrcode from "qrcode-terminal";
-import WAWebJS from "whatsapp-web.js";
+import WAWebJS, { LocalAuth } from "whatsapp-web.js";
 import MessageHandler from "./src/message-handler";
 
 dotenv.config();
@@ -10,7 +10,9 @@ dotenv.config();
     puppeteer: {
       headless: true,
       args: ["--no-sandbox", "--disable-setuid-sandbox"],
+      // executablePath: "/usr/bin/google-chrome-stable",
     },
+    authStrategy: new LocalAuth(),
   });
 
   client.initialize();
@@ -22,7 +24,7 @@ dotenv.config();
   });
 
   client.on("ready", () => {
-    console.info("Client is Ready!");
+    console.info("\n\nClient is Ready!\n\n");
   });
 
   // Automatically reject incoming call

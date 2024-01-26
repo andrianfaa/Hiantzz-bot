@@ -7,5 +7,6 @@
 # Folder
 node_modules/
 build/
-.wwebjs_cache/
+.wwebjs*
 data/
+downloads/

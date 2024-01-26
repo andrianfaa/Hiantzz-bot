@@ -1,0 +1,3 @@
+Untuk menggunakan perintah  *_COMMAND_*, kamu perlu memasukkan url agar perintah ini bekerja. contoh :
+
+*_COMMAND_  _URL_*

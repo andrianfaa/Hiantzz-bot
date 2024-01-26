@@ -1,8 +1,10 @@
-import { RsnChat } from "rsnchat";
+import { Image, RsnChat } from "rsnchat";
 import { MessageMedia, type Client, type Message } from "whatsapp-web.js";
 import { prodiaModels } from "../constants";
 import { templateLoader } from "../utils";
 import DefaultMessageHandler from "./base-message-handler";
+
+type ProdiaModels = Parameters<typeof RsnChat.prototype.prodia>["2"];
 
 class AIMessageHandler extends DefaultMessageHandler {
   rsnchat: RsnChat;
@@ -179,11 +181,16 @@ class AIMessageHandler extends DefaultMessageHandler {
       return;
     }
 
-    if (!this.text) {
+    if (!this.text || this.command.toLowerCase() === "prodia") {
       let tutorial = await templateLoader("ask-prodia");
+      const media = await MessageMedia.fromUrl(
+        "https://cdn.knoji.com/images/logo/prodia-ai.jpg?fit=contain&trim=true&flatten=true&extend=25&width=1200&height=630"
+      );
 
       this.message.react("❌");
-      this.message.reply(tutorial);
+      this.message.reply(media, undefined, {
+        caption: tutorial,
+      });
       return;
     }
 
@@ -207,7 +214,7 @@ class AIMessageHandler extends DefaultMessageHandler {
     ) {
       this.message.react("❌");
       this.message.reply(
-        "Model tidak ditemukan! pastikan model yang kamu ketik sesuai dengan model yang ada."
+        "Model tidak ditemukan! pastikan model yang kamu pilih sesuai dengan model yang ada."
       );
       return;
     }
@@ -218,7 +225,7 @@ class AIMessageHandler extends DefaultMessageHandler {
       let response = await this.rsnchat.prodia(
         prompt.trim(),
         negativePrompt.trim(),
-        model.trim()
+        model.trim() as ProdiaModels
       );
 
       if (typeof response !== "string" && "base64" in response) {

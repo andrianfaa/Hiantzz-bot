@@ -2,10 +2,12 @@ import { type Client, type Message } from "whatsapp-web.js";
 import { userBanned } from "./database";
 import { WhatsAppSticker } from "./features";
 import { AIMessageHandler, BaseMessageHandler } from "./handler";
+import SocialMediaDownloaderMessageHandler from "./handler/social-media-message-handler";
 import { templateLoader } from "./utils";
 
 class MessageHandler extends BaseMessageHandler {
   ai: AIMessageHandler;
+  socialMediaDownloader: SocialMediaDownloaderMessageHandler;
 
   /**
    * MessageHandler
@@ -17,6 +19,10 @@ class MessageHandler extends BaseMessageHandler {
     super(message, client);
 
     this.ai = new AIMessageHandler(message, client);
+    this.socialMediaDownloader = new SocialMediaDownloaderMessageHandler(
+      message,
+      client
+    );
 
     this.switchCommand();
   }
@@ -50,6 +56,13 @@ class MessageHandler extends BaseMessageHandler {
 
       case "prodia":
         return this.ai.askProdia();
+
+      // Social Media Downloader
+      case "ig":
+        return this.socialMediaDownloader.instagramDownloader();
+
+      case "tiktok":
+        return this.socialMediaDownloader.tiktokDownloader();
 
       // Special
       case "ban":
@@ -98,29 +111,29 @@ class MessageHandler extends BaseMessageHandler {
 
     try {
       const media = await WhatsAppSticker.getMedia(this.message);
-      const user = await this.message.getContact();
 
-      this.client.sendMessage(this.message.from, media, {
-        sendMediaAsSticker: true,
-        stickerAuthor: "Hiantzz!",
-        stickerName: "Sticker!",
-        mentions: [user.id._serialized],
-      });
+      this.message
+        .reply(media, undefined, {
+          sendMediaAsSticker: true,
+          stickerAuthor: "Hiantzz!",
+          stickerName: "Sticker!",
+        })
+        .finally(async () => {
+          const chat: any = await this.message.getChat();
 
-      const chat: any = await this.message.getChat();
+          if (chat.isGroup) {
+            const participants = chat.groupMetadata?.participants || [];
+            const bot = participants.find(
+              ({ id }: any) => id.user === (process.env.BOT_NUMBER || "")
+            );
 
-      if (chat.isGroup) {
-        const participants = chat.groupMetadata?.participants || [];
-        const bot = participants.find(
-          ({ id }: any) => id.user === (process.env.BOT_NUMBER || "")
-        );
-
-        if (bot.isAdmin) {
-          this.message.delete(true);
-        }
-      } else {
-        this.message.react("✅");
-      }
+            if (bot.isAdmin) {
+              this.message.delete(true);
+            }
+          } else {
+            this.message.react("✅");
+          }
+        });
     } catch (error) {
       console.error(error);
 

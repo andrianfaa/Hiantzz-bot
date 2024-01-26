@@ -2,26 +2,25 @@
 
 Berikut daftar perintah yang tersedia saat ini.
 
--  *menu!*
--  *sticker!*
+-   ```menu!```
+-   ```sticker!```
 
---------------------------------------------------------
-AI
---------------------------------------------------------
--  *chatgpt!*
--  *openchat!*
--  *gemini!*
--  *llama!*
--  *bard!* (gunakan bahasa inggris)
--  *prodia!* (AI image generation)
+*Artificial Intelligence (AI)*
+-   ```chatgpt!```
+-   ```openchat!```
+-   ```gemini!```
+-   ```llama!```
+-   ```bard!```     (English)
+-   ```prodia!```     (AI image generator)
 
---------------------------------------------------------
-Developer 
---------------------------------------------------------
--  *ban!*
--  *unban!*
+*Social Media Downloader*
+-   ```ig!```
+
+*Developer*
+-   ```ban!```   
+-   ```unban!```
 
 
-Untuk menggunakan fitur diatas, cukup ketik dengan format dibawah ini
+Untuk menggunakan fitur diatas, cukup dengan mengetik perintahnya dan ikuti instruksinya. contoh :
 
-```<perintah> <text>```
+```chatgpt!```
