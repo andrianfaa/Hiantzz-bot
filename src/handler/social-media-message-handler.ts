@@ -84,20 +84,17 @@ class SocialMediaDownloaderMessageHandler extends BaseMessageHandler {
       this.message.react("❌");
       this.message.reply(
         tutorial
-          .replace(/_COMMAND_/gi, "ig!")
+          .replace(/_COMMAND_/gi, "reels!")
           .replace(
             /_URL_/gi,
             "https://www.instagram.com/reel/CzLzuUuJf5V/?igsh=eThxd2x0N2Z0cGkx"
           )
       );
       return;
-    } else if (
-      this.text.match("facebook.com") &&
-      !this.text.match("instagram.com/reel/")
-    ) {
+    } else if (!this.text.match("instagram.com/reel")) {
       this.message.react("❌");
       this.message.reply(
-        "Maaf, fitur ini khusus untuk mendownload konten instagram saja."
+        "Maaf, fitur ini khusus untuk mendownload reels instagram saja."
       );
       return;
     }
