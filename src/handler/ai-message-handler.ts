@@ -1,4 +1,4 @@
-import { Image, RsnChat } from "rsnchat";
+import { RsnChat } from "rsnchat";
 import { MessageMedia, type Client, type Message } from "whatsapp-web.js";
 import { prodiaModels } from "../constants";
 import { templateLoader } from "../utils";
@@ -38,6 +38,37 @@ class AIMessageHandler extends DefaultMessageHandler {
 
     try {
       const response = await this.rsnchat.gpt(this.text);
+
+      this.message.react("✅");
+      this.message.reply(response.message);
+    } catch (error) {
+      this.sendErrorMessage(error);
+    }
+  }
+
+  /**
+   * Bing
+   */
+  async askBing() {
+    const isUserBanned = await this.isBanned();
+
+    if (isUserBanned) {
+      this.sendBannedMessage();
+      return;
+    }
+
+    if (!this.text) {
+      let tutorial = await templateLoader("ask-ai");
+
+      this.message.react("❌");
+      this.message.reply(tutorial.replace(/_COMMAND_/gi, "bing!"));
+      return;
+    }
+
+    this.message.react("⏳");
+
+    try {
+      const response = await this.rsnchat.bing(this.text);
 
       this.message.react("✅");
       this.message.reply(response.message);

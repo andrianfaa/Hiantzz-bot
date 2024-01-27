@@ -1,82 +1,21 @@
-import axios from "axios";
-import { randomUUID } from "crypto";
-import * as Downloader from "nayan-media-downloader";
+import jarifapi from "jarif-api";
 import fs from "node:fs";
-import https from "node:https";
 import path from "node:path";
 import { Client, MessageMedia, type Message } from "whatsapp-web.js";
-import BaseMessageHandler from "./base-message-handler";
+import { TikTokDownload } from "../features";
 import { templateLoader } from "../utils";
+import BaseMessageHandler from "./base-message-handler";
+
+const downloadPath = path.resolve(process.cwd(), "downloads");
 
 class SocialMediaDownloaderMessageHandler extends BaseMessageHandler {
   constructor(message: Message, client: Client) {
     super(message, client);
   }
 
-  private async getInstagramContent(thumbnail: string, url: string) {
-    try {
-      const response = await axios.get(url);
-      const downloadPath = path.resolve(process.cwd(), "downloads");
-      const filename =
-        (response.headers["content-disposition"] as string)?.match(
-          /filename=(.*)/gi
-        )?.[0] || "";
-      const extension = path.extname(filename);
-
-      if (!fs.existsSync(downloadPath)) {
-        fs.mkdirSync(downloadPath);
-      }
-
-      if (extension !== ".mp4") {
-        let tutorial = await templateLoader("social-media");
-
-        this.message.react("❌");
-        this.message.reply(
-          tutorial
-            .replace(/_COMMAND_/gi, "ig!")
-            .replace(
-              /_URL_/gi,
-              "https://www.instagram.com/reel/CzLzuUuJf5V/?igsh=eThxd2x0N2Z0cGkx"
-            )
-        );
-        return;
-      }
-
-      const newFileName = `hiantzz.cloud-${randomUUID() + extension}`;
-      const file = fs.createWriteStream(
-        path.resolve(downloadPath, newFileName)
-      );
-
-      https.get(url, (response) => {
-        response.pipe(file);
-
-        file.on("finish", async () => {
-          const thumbnailAsMedia = await MessageMedia.fromUrl(thumbnail, {
-            unsafeMime: true,
-            filename: "thumnnail.png",
-          });
-          const media = MessageMedia.fromFilePath(file.path as string);
-
-          this.message
-            .reply(thumbnailAsMedia)
-            .then((res) => {
-              res.reply(media, undefined, {
-                sendMediaAsDocument: true,
-              });
-            })
-            .finally(() => {
-              // delete downloaded file
-              fs.unlinkSync(file.path);
-              this.message.react("✅");
-            });
-        });
-      });
-    } catch (error) {
-      console.error(error);
-      throw error;
-    }
-  }
-
+  /**
+   * Instagram reels downloader
+   */
   async reelsDownloader() {
     if (!this.text) {
       let tutorial = await templateLoader("social-media");
@@ -91,6 +30,7 @@ class SocialMediaDownloaderMessageHandler extends BaseMessageHandler {
           )
       );
       return;
+      // }
     } else if (!this.text.match("instagram.com/reel")) {
       this.message.react("❌");
       this.message.reply(
@@ -102,26 +42,102 @@ class SocialMediaDownloaderMessageHandler extends BaseMessageHandler {
     this.message.react("⏳");
 
     try {
-      const response = await Downloader.ndown(this.text);
-
-      if (Array.isArray(response.data)) {
-        const data = response.data;
-
-        data.forEach(async ({ thumbnail, url }) => {
-          this.getInstagramContent(thumbnail, url);
-        });
-        return;
-      }
-
-      this.sendErrorMessage();
+      this.getInstagramContent(this.text);
     } catch (error) {
       this.sendErrorMessage(error);
     }
   }
 
+  /**
+   * TikTok downloader
+   */
   async tiktokDownloader() {
-    this.message.react("✅");
-    this.message.reply("Fitur ini sedang dalam pengembangan");
+    if (!this.text) {
+      let tutorial = await templateLoader("social-media");
+
+      this.message.react("❌");
+      this.message.reply(
+        tutorial
+          .replace(/_COMMAND_/gi, "tiktok!")
+          .replace(
+            /_URL_/gi,
+            "https://www.tiktok.com/@gadgett25/video/7302413693063564550?is_from_webapp=1&sender_device=pc&web_id=7328829295601190402"
+          )
+      );
+      return;
+    } else if (!this.text.match("tiktok.com")) {
+      this.message.react("❌");
+      this.message.reply(
+        "Maaf, fitur ini khusus untuk mendownload tiktok saja."
+      );
+      return;
+    }
+
+    this.message.react("⏳");
+
+    try {
+      await this.getTiktokContent(this.text);
+    } catch (error) {
+      this.sendErrorMessage(error);
+    }
+  }
+
+  /**
+   * Check downloads path
+   */
+  private checkDownloadPath() {
+    if (!fs.existsSync(downloadPath)) {
+      fs.mkdirSync(downloadPath);
+    }
+  }
+
+  /**
+   * *getInstagramContent*
+   * @param {string} url instagram reels url
+   */
+  private async getInstagramContent(url: string) {
+    try {
+      const responseUrl = await jarifapi.igvideo(url);
+      const downloadUrl =
+        responseUrl.match(/https:\/\/(.*)"/gi)?.[0]?.replace(/"/gi, "") || "";
+      const media = await MessageMedia.fromUrl(downloadUrl);
+
+      this.message
+        .reply(media, undefined, {
+          // sendMediaAsDocument: false,
+          sendMediaAsDocument: true,
+          caption: `Jika ingin mendownloadnya secara manual, silahkan klik link dibawah ini:\n\n${downloadUrl}`,
+        })
+        .finally(() => {
+          this.message.react("✅");
+        });
+    } catch (error) {
+      console.error("Reels Downloader Error: ", error);
+    }
+  }
+
+  /**
+   * *getTiktokContent*
+   * @param {string} url TikTok video url
+   */
+  private async getTiktokContent(url: string) {
+    try {
+      const tiktok = await TikTokDownload(url);
+      const media = await MessageMedia.fromUrl(tiktok?.noWatermark || "", {
+        unsafeMime: true,
+      });
+
+      this.message
+        .reply(media, this.message.from, {
+          sendMediaAsDocument: false,
+          caption: `${tiktok?.author.nickname}\n\n${tiktok?.caption}\n\n${tiktok?.music.title} - ${tiktok?.music.author}`,
+        })
+        .finally(() => {
+          this.message.react("✅");
+        });
+    } catch (error) {
+      console.error(error);
+    }
   }
 }
 

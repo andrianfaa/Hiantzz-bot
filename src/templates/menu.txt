@@ -11,10 +11,13 @@ Berikut daftar perintah yang tersedia saat ini.
 -   ```gemini!```
 -   ```llama!```
 -   ```bard!```     (English)
+-   ```bing!```     (New)
+
 -   ```prodia!```     (AI image generator)
 
 *Social Media Downloader*
 -   ```reels!```     (Instagram reels downloader)
+-   ```tiktok!```     (TikTok downloader)
 
 *Developer*
 -   ```ban!```   

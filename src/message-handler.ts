@@ -45,6 +45,9 @@ class MessageHandler extends BaseMessageHandler {
       case "bard":
         return this.ai.askBard();
 
+      case "bing":
+        return this.ai.askBing();
+
       case "openchat":
         return this.ai.askOpenChat();
 

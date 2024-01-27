@@ -18,6 +18,14 @@ class BaseMessageHandler {
 
     this.client = client;
     this.message = message;
+
+    this.sendSeen();
+  }
+
+  private async sendSeen() {
+    const chat = await this.message.getChat();
+
+    chat.sendSeen();
   }
 
   /**
