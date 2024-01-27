@@ -59,10 +59,7 @@ class SocialMediaDownloaderMessageHandler extends BaseMessageHandler {
       this.message.reply(
         tutorial
           .replace(/_COMMAND_/gi, "tiktok!")
-          .replace(
-            /_URL_/gi,
-            "https://www.tiktok.com/@gadgett25/video/7302413693063564550?is_from_webapp=1&sender_device=pc&web_id=7328829295601190402"
-          )
+          .replace(/_URL_/gi, "https://vt.tiktok.com/ZSFe6HKsm/")
       );
       return;
     } else if (!this.text.match("tiktok.com")) {
@@ -104,7 +101,6 @@ class SocialMediaDownloaderMessageHandler extends BaseMessageHandler {
 
       this.message
         .reply(media, undefined, {
-          // sendMediaAsDocument: false,
           sendMediaAsDocument: true,
           caption: `Jika ingin mendownloadnya secara manual, silahkan klik link dibawah ini:\n\n${downloadUrl}`,
         })

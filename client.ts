@@ -8,6 +8,7 @@ dotenv.config();
 (() => {
   const client = new WAWebJS.Client({
     puppeteer: {
+      headless: "chrome",
       args: ["--no-sandbox", "--disable-setuid-sandbox"],
       executablePath: "/usr/bin/google-chrome",
     },
