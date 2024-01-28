@@ -24,13 +24,15 @@ dotenv.config();
     });
   });
 
-  client.on("ready", () => {
-    console.info("Client is Ready!");
-
-    client.sendMessage(
-      `${process.env.DEVELOPER_NUMBER || ""}@c.us`,
-      "Bot ready!"
-    );
+  client.on("ready", async () => {
+    await client
+      .sendMessage(`${process.env.DEVELOPER_NUMBER || ""}@c.us`, "Bot ready!")
+      .then(() => {
+        console.info("Client is ready!");
+      })
+      .catch((error) => {
+        console.error("Client error: ", error);
+      });
   });
 
   // Automatically reject incoming call
