@@ -1,4 +1,5 @@
-import path from "node:path";
+// import path from "node:path";
+const path = require("node:path");
 
 module.exports = {
   apps: [
