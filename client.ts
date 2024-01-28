@@ -1,7 +1,13 @@
 import dotenv from "dotenv";
+import fs from "node:fs";
+import path from "node:path";
 import qrcode from "qrcode-terminal";
 import WAWebJS, { LocalAuth } from "whatsapp-web.js";
 import MessageHandler from "./src/message-handler";
+
+if (fs.existsSync(path.resolve(process.cwd(), ".env"))) {
+  throw new Error("ERROR: .env not found!");
+}
 
 dotenv.config();
 
