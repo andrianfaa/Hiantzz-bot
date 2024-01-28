@@ -49,6 +49,11 @@ class BaseMessageHandler {
   sendErrorMessage(error?: any) {
     if (error) console.error(error);
 
+    this.client.sendMessage(
+      `${process.env.DEVELOPER_NUMBER || ""}@c.us`,
+      error?.message
+    );
+
     this.message.react("❌");
     this.message.reply(
       "Maaf, sepertinya ada yang error dengan fitur ini ૮(˶╥︿╥)ა"
