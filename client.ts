@@ -1,6 +1,6 @@
 import dotenv from "dotenv";
 import qrcode from "qrcode-terminal";
-import WAWebJS from "whatsapp-web.js";
+import WAWebJS, { LocalAuth } from "whatsapp-web.js";
 import MessageHandler from "./src/message-handler";
 
 dotenv.config();
@@ -8,13 +8,12 @@ dotenv.config();
 (() => {
   const client = new WAWebJS.Client({
     puppeteer: {
-      headless: "chrome",
+      // headless: "chrome",
+      headless: true,
       args: ["--no-sandbox", "--disable-setuid-sandbox"],
       executablePath: "/usr/bin/google-chrome",
     },
-    userAgent:
-      "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
-    authStrategy: new WAWebJS.LocalAuth(),
+    authStrategy: new LocalAuth(),
   });
 
   client.initialize();
@@ -26,7 +25,12 @@ dotenv.config();
   });
 
   client.on("ready", () => {
-    console.info("\n\nClient is Ready!\n\n");
+    console.info("Client is Ready!");
+
+    client.sendMessage(
+      `${process.env.DEVELOPER_NUMBER || ""}@c.us`,
+      "Bot ready!"
+    );
   });
 
   // Automatically reject incoming call
