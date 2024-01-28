@@ -5,7 +5,7 @@ module.exports = {
       script: "./build/client.js",
       watch: true,
       exec_mode: "cluster",
-      instances: 4
+      instances: 1
     }
   ]
 }
