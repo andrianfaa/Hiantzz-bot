@@ -19,7 +19,7 @@ class BaseMessageHandler {
     this.client = client;
     this.message = message;
 
-    console.log({ message });
+    // console.log({ message });
 
     this.sendSeen();
   }
