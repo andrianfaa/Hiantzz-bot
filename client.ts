@@ -31,8 +31,12 @@ dotenv.config();
   });
 
   client.on("ready", async () => {
+    const to = process.env.HIANTZZ_LOG_ID
+      ? `${process.env.HIANTZZ_LOG_ID}@g.us`
+      : `${process.env.HIANTZZ_DEVELOPER_ID}@c.us`;
+
     await client
-      .sendMessage(`${process.env.DEVELOPER_NUMBER || ""}@c.us`, "Bot ready!")
+      .sendMessage(to, "Bot is ready!")
       .then(() => {
         console.info("Client is ready!");
       })

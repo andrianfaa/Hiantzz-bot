@@ -32,6 +32,9 @@ class MessageHandler extends BaseMessageHandler {
       case "bot":
         return this.message.reply("Hah?");
 
+      case "ping":
+        return this.pong();
+
       case "menu":
         return this.showMenu();
 
@@ -76,6 +79,17 @@ class MessageHandler extends BaseMessageHandler {
 
       default:
         break;
+    }
+  }
+
+  /**
+   * Ping
+   */
+  private async pong() {
+    try {
+      this.message.reply("Pong!");
+    } catch (error) {
+      this.sendErrorMessage(error);
     }
   }
 
@@ -127,7 +141,7 @@ class MessageHandler extends BaseMessageHandler {
           if (chat.isGroup) {
             const participants = chat.groupMetadata?.participants || [];
             const bot = participants.find(
-              ({ id }: any) => id.user === (process.env.BOT_NUMBER || "")
+              ({ id }: any) => id.user === (process.env.HIANTZZ_BOT_ID || "")
             );
 
             if (bot.isAdmin) {
@@ -157,7 +171,7 @@ class MessageHandler extends BaseMessageHandler {
 
     const userContact = await this.message.getContact();
     const isDeveloper =
-      (process.env.DEVELOPER_NUMBER || "") === userContact.number;
+      (process.env.HIANTZZ_DEVELOPER_ID || "") === userContact.number;
 
     if (!isDeveloper) {
       this.message.react("❌");
@@ -173,7 +187,7 @@ class MessageHandler extends BaseMessageHandler {
 
       if (
         contact.isMe ||
-        contact.number === (process.env.DEVELOPER_NUMBER || "")
+        contact.number === (process.env.HIANTZZ_DEVELOPER_ID || "")
       ) {
         this.message.react("❌");
         this.message.reply("Bot atau Developer tidak dapat di ban!");
@@ -188,7 +202,10 @@ class MessageHandler extends BaseMessageHandler {
       this.message.react("✅");
     } else if (mentionedUser.length > 0) {
       mentionedUser.forEach(async (user) => {
-        if (user.isMe || user.number === (process.env.DEVELOPER_NUMBER || "")) {
+        if (
+          user.isMe ||
+          user.number === (process.env.HIANTZZ_DEVELOPER_ID || "")
+        ) {
           this.message.react("❌");
           this.message.reply("Bot atau Developer tidak dapat di ban!");
 
@@ -214,7 +231,7 @@ class MessageHandler extends BaseMessageHandler {
 
     const userContact = await this.message.getContact();
     const isDeveloper =
-      (process.env.DEVELOPER_NUMBER || "") === userContact.number;
+      (process.env.HIANTZZ_DEVELOPER_ID || "") === userContact.number;
 
     if (!isDeveloper) {
       this.message.react("❌");
@@ -230,7 +247,7 @@ class MessageHandler extends BaseMessageHandler {
 
       if (
         contact.isMe ||
-        contact.number === (process.env.DEVELOPER_NUMBER || "")
+        contact.number === (process.env.HIANTZZ_DEVELOPER_ID || "")
       ) {
         this.message.react("❌");
         this.message.reply("Bot atau Developer tidak dapat di unban!");
@@ -248,7 +265,10 @@ class MessageHandler extends BaseMessageHandler {
       }
     } else if (mentionedUser.length > 0) {
       mentionedUser.forEach(async (user) => {
-        if (user.isMe || user.number === (process.env.DEVELOPER_NUMBER || "")) {
+        if (
+          user.isMe ||
+          user.number === (process.env.HIANTZZ_DEVELOPER_ID || "")
+        ) {
           this.message.react("❌");
           this.message.reply("Bot atau Developer tidak dapat di unban!");
 

@@ -19,6 +19,8 @@ class BaseMessageHandler {
     this.client = client;
     this.message = message;
 
+    console.log({ message });
+
     this.sendSeen();
   }
 
@@ -47,12 +49,18 @@ class BaseMessageHandler {
   }
 
   sendErrorMessage(error?: any) {
-    if (error) console.error(error);
+    if (error) {
+      let message = error?.message || "Bot error";
 
-    this.client.sendMessage(
-      `${process.env.DEVELOPER_NUMBER || ""}@c.us`,
-      error?.message
-    );
+      message.replace(/RsnChat|AxiosError:/gi, "");
+
+      if (process.env.HIANTZZ_LOG_ID) {
+        this.client.sendMessage(
+          `${process.env.HIANTZZ_LOG_ID || ""}@g.us`,
+          message.trim()
+        );
+      }
+    }
 
     this.message.react("❌");
     this.message.reply(
