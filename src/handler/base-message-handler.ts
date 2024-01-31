@@ -35,7 +35,14 @@ class BaseMessageHandler {
   async isBanned(): Promise<boolean> {
     const contact = await this.message.getContact();
     const user = await UserBanned.findOne({
-      chat_id: contact.id,
+      $or: [
+        {
+          chat_id: contact.id._serialized,
+        },
+        {
+          number: contact.number,
+        },
+      ],
     });
 
     return !!user;
