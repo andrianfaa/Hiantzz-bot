@@ -1,5 +1,5 @@
 import { type Client, type Message } from "whatsapp-web.js";
-import { userBanned } from "./database";
+import { UserBanned } from "./database";
 import { WhatsAppSticker } from "./features";
 import { AIMessageHandler, BaseMessageHandler } from "./handler";
 import SocialMediaDownloaderMessageHandler from "./handler/social-media-message-handler";
@@ -194,26 +194,60 @@ class MessageHandler extends BaseMessageHandler {
 
         return;
       } else {
-        const isBanned = await userBanned.isBanned(contact.number);
-        // Ban user
-        if (!isBanned) await userBanned.ban(contact.number);
+        const isBanned = await UserBanned.findOne({
+          $or: [
+            {
+              chat_id: contact.id._serialized,
+            },
+            {
+              number: contact.number,
+            },
+          ],
+        });
+
+        if (!isBanned) {
+          // Ban user
+          const ban = new UserBanned({
+            chat_id: contact.id._serialized,
+            number: contact.number,
+          });
+
+          await ban.save();
+        }
       }
 
       this.message.react("✅");
     } else if (mentionedUser.length > 0) {
-      mentionedUser.forEach(async (user) => {
+      mentionedUser.forEach(async (contact) => {
         if (
-          user.isMe ||
-          user.number === (process.env.HIANTZZ_DEVELOPER_ID || "")
+          contact.isMe ||
+          contact.number === (process.env.HIANTZZ_DEVELOPER_ID || "")
         ) {
           this.message.react("❌");
           this.message.reply("Bot atau Developer tidak dapat di ban!");
 
           return;
         } else {
-          const isBanned = await userBanned.isBanned(user.number);
-          // Ban user
-          if (!isBanned) await userBanned.ban(user.number);
+          const isBanned = await UserBanned.findOne({
+            $or: [
+              {
+                chat_id: contact.id._serialized,
+              },
+              {
+                number: contact.number,
+              },
+            ],
+          });
+
+          if (!isBanned) {
+            // Ban user
+            const ban = new UserBanned({
+              chat_id: contact.id._serialized,
+              number: contact.number,
+            });
+
+            await ban.save();
+          }
         }
       });
 
@@ -252,40 +286,76 @@ class MessageHandler extends BaseMessageHandler {
         this.message.react("❌");
         this.message.reply("Bot atau Developer tidak dapat di unban!");
       } else {
-        const isBanned = await userBanned.isBanned(contact.number);
+        const isBanned = await UserBanned.findOne({
+          $or: [
+            {
+              chat_id: contact.id._serialized,
+            },
+            {
+              number: contact.number,
+            },
+          ],
+        });
 
         if (isBanned) {
           // Unban user
-          await userBanned.unban(contact.number);
-
-          this.message.react("✅");
+          await UserBanned.deleteOne({
+            $or: [
+              {
+                chat_id: contact.id._serialized,
+              },
+              {
+                number: contact.number,
+              },
+            ],
+          }).then(() => {
+            this.message.react("✅");
+          });
         } else {
           console.log("user not banned");
         }
       }
     } else if (mentionedUser.length > 0) {
-      mentionedUser.forEach(async (user) => {
+      mentionedUser.forEach(async (contact) => {
         if (
-          user.isMe ||
-          user.number === (process.env.HIANTZZ_DEVELOPER_ID || "")
+          contact.isMe ||
+          contact.number === (process.env.HIANTZZ_DEVELOPER_ID || "")
         ) {
           this.message.react("❌");
           this.message.reply("Bot atau Developer tidak dapat di unban!");
 
           return;
         } else {
-          const isBanned = await userBanned.isBanned(user.number);
+          const isBanned = await UserBanned.findOne({
+            $or: [
+              {
+                chat_id: contact.id._serialized,
+              },
+              {
+                number: contact.number,
+              },
+            ],
+          });
 
           if (isBanned) {
             // Unban user
-            await userBanned.unban(user.number);
+            await UserBanned.deleteOne({
+              $or: [
+                {
+                  chat_id: contact.id._serialized,
+                },
+                {
+                  number: contact.number,
+                },
+              ],
+            }).then(() => {
+              this.message.react("✅");
+            });
           } else {
             console.log("user is not banned");
           }
         }
       });
-
-      this.message.react("✅");
     } else {
       this.message.react("❌");
     }

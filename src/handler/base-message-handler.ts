@@ -1,5 +1,5 @@
 import { type Client, type Message } from "whatsapp-web.js";
-import { userBanned } from "../database";
+import { UserBanned } from "../database";
 
 class BaseMessageHandler {
   public client: Client;
@@ -19,8 +19,6 @@ class BaseMessageHandler {
     this.client = client;
     this.message = message;
 
-    // console.log({ message });
-
     this.sendSeen();
   }
 
@@ -35,10 +33,12 @@ class BaseMessageHandler {
    * @returns {Promise<boolean>}
    */
   async isBanned(): Promise<boolean> {
-    const user = await this.message.getContact();
-    const isUserBanned = await userBanned.isBanned(user.number);
+    const contact = await this.message.getContact();
+    const user = await UserBanned.findOne({
+      chat_id: contact.id,
+    });
 
-    return isUserBanned;
+    return !!user;
   }
 
   sendBannedMessage() {
@@ -50,15 +50,19 @@ class BaseMessageHandler {
 
   sendErrorMessage(error?: any) {
     if (error) {
-      let message = error?.message || "Bot error";
+      let message = (error?.message as string) || "Bot error";
 
-      message.replace(/RsnChat|AxiosError:/gi, "");
+      console.log({ message });
+
+      message.replaceAll(/RsnChat|AxiosError:/gi, "");
 
       if (process.env.HIANTZZ_LOG_ID) {
         this.client.sendMessage(
           `${process.env.HIANTZZ_LOG_ID || ""}@g.us`,
           message.trim()
         );
+      } else {
+        console.error(message.trim());
       }
     }
 

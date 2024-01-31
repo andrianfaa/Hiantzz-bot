@@ -3,6 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import qrcode from "qrcode-terminal";
 import WAWebJS, { LocalAuth } from "whatsapp-web.js";
+import { ConnectDB } from "./src/database";
 import MessageHandler from "./src/message-handler";
 
 if (!fs.existsSync(path.resolve(process.cwd(), ".env"))) {
@@ -19,9 +20,12 @@ dotenv.config();
       args: ["--no-sandbox", "--disable-setuid-sandbox"],
       executablePath: "/usr/bin/google-chrome",
     },
+    ffmpegPath: "/usr/bin/ffmpeg",
     authStrategy: new LocalAuth(),
   });
 
+  // Init
+  ConnectDB(process.env.MONGODB_URL || "");
   client.initialize();
 
   client.on("qr", (qr) => {

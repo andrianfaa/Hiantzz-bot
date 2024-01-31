@@ -1,12 +1,17 @@
 import jarifapi from "jarif-api";
+import https from "https";
 import fs from "node:fs";
 import path from "node:path";
+import ffmpeg from "fluent-ffmpeg";
+import simpleVideoConverter from "simple-video-converter";
 import { Client, MessageMedia, type Message } from "whatsapp-web.js";
 import { TikTokDownload } from "../features";
 import { templateLoader } from "../utils";
 import BaseMessageHandler from "./base-message-handler";
+import { randomBytes } from "crypto";
 
 const downloadPath = path.resolve(process.cwd(), "downloads");
+// const ffmpeg = ffmpeg.FFfmpegCommand();
 
 class SocialMediaDownloaderMessageHandler extends BaseMessageHandler {
   constructor(message: Message, client: Client) {
@@ -97,16 +102,48 @@ class SocialMediaDownloaderMessageHandler extends BaseMessageHandler {
       const responseUrl = await jarifapi.igvideo(url);
       const downloadUrl =
         responseUrl.match(/https:\/\/(.*)"/gi)?.[0]?.replace(/"/gi, "") || "";
-      const media = await MessageMedia.fromUrl(downloadUrl);
 
-      this.message
-        .reply(media, undefined, {
-          sendMediaAsDocument: true,
-          caption: `Jika ingin mendownloadnya secara manual, silahkan klik link dibawah ini:\n\n${downloadUrl}`,
-        })
-        .finally(() => {
-          this.message.react("✅");
+      if (downloadUrl) {
+        this.checkDownloadPath();
+
+        const name = `hiantzz.cloud-${randomBytes(8).toString("hex")}`;
+        const file = fs.createWriteStream(
+          path.resolve(downloadPath, `${name}.mp4`)
+        );
+
+        https.get(downloadUrl, (response) => {
+          response.pipe(file);
+
+          file.on("finish", async () => {
+            ffmpeg(file.path as string)
+              .videoCodec("libx264")
+              .save(path.resolve(downloadPath, `${name}-converted.mp4`))
+              .on("end", () => {
+                const media = MessageMedia.fromFilePath(
+                  path.resolve(downloadPath, `${name}-converted.mp4`)
+                );
+
+                this.message
+                  .reply(media, this.message.from, {
+                    sendMediaAsDocument: false,
+                  })
+                  .then(() => {
+                    this.message.react("✅");
+                  })
+                  .finally(() => {
+                    [
+                      file.path as string,
+                      path.resolve(downloadPath, `${name}-converted.mp4`),
+                    ].forEach((filename) => {
+                      fs.unlinkSync(filename);
+                    });
+                  });
+              });
+          });
         });
+      } else {
+        this.sendErrorMessage();
+      }
     } catch (error) {
       console.error("Reels Downloader Error: ", error);
     }

@@ -25,12 +25,15 @@
     "typescript": "^5.3.3"
   },
   "dependencies": {
+    "@types/fluent-ffmpeg": "^2.1.24",
     "@types/qrcode-terminal": "^0.12.2",
     "axios": "^1.6.5",
+    "fluent-ffmpeg": "^2.1.2",
     "jarif-api": "^1.0.2",
+    "mongoose": "^8.1.1",
     "qrcode-terminal": "^0.12.0",
     "rsnchat": "^3.0.5",
-    "upscalejs": "^1.1.0",
+    "snapsave-downloader-itj": "^1.0.1",
     "whatsapp-web.js": "^1.23.0"
   }
 }

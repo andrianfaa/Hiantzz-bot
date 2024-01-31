@@ -1,8 +1,11 @@
 module.exports = {
   apps: [
     {
-      name: "Hiantzz-bot",
-      script: "./build/client.js"
+      name: "hiantzz",
+      script: "./build/client.js",
+      watch: true,
+      max_memory_restart: "150M",
+      instance: 1 
     }
   ]
 }

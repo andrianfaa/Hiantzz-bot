@@ -28,9 +28,14 @@ class AIMessageHandler extends DefaultMessageHandler {
 
     if (!this.text) {
       let tutorial = await templateLoader("ask-ai");
+      const media = await MessageMedia.fromUrl(
+        "https://automationhero.ai/wp-content/uploads/2023/03/161-chat-gpt-and-your-business-documents.jpg"
+      );
 
       this.message.react("❌");
-      this.message.reply(tutorial.replace(/_COMMAND_/gi, "chatgpt!"));
+      this.message.reply(media, undefined, {
+        caption: tutorial.replace(/_COMMAND_/gi, "chatgpt!"),
+      });
       return;
     }
 
@@ -121,9 +126,14 @@ class AIMessageHandler extends DefaultMessageHandler {
 
     if (!this.text) {
       let tutorial = await templateLoader("ask-ai");
+      const media = await MessageMedia.fromUrl(
+        "https://storage.googleapis.com/gweb-uniblog-publish-prod/images/final_keyword_header.width-1200.format-webp.webp"
+      );
 
       this.message.react("❌");
-      this.message.reply(tutorial.replace(/_COMMAND_/gi, "gemini!"));
+      this.message.reply(media, undefined, {
+        caption: tutorial.replace(/_COMMAND_/gi, "gemini!"),
+      });
       return;
     }
 
@@ -184,8 +194,14 @@ class AIMessageHandler extends DefaultMessageHandler {
     if (!this.text) {
       let tutorial = await templateLoader("ask-ai");
 
+      const media = await MessageMedia.fromUrl(
+        "https://blob.cloudcomputing.id/images/07e229a1-8c4b-4406-8021-e61e30de8013/logo-google-bard-l-min.jpg"
+      );
+
       this.message.react("❌");
-      this.message.reply(tutorial.replace(/_COMMAND_/gi, "bard!"));
+      this.message.reply(media, undefined, {
+        caption: tutorial.replace(/_COMMAND_/gi, "bard!"),
+      });
       return;
     }
 
