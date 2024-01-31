@@ -1,17 +1,16 @@
-import jarifapi from "jarif-api";
+// import jarifapi from "jarif-api";
+import { randomBytes } from "crypto";
+import ffmpeg from "fluent-ffmpeg";
 import https from "https";
+import { getReelInfo } from "insta-dl";
 import fs from "node:fs";
 import path from "node:path";
-import ffmpeg from "fluent-ffmpeg";
-import simpleVideoConverter from "simple-video-converter";
 import { Client, MessageMedia, type Message } from "whatsapp-web.js";
 import { TikTokDownload } from "../features";
 import { templateLoader } from "../utils";
 import BaseMessageHandler from "./base-message-handler";
-import { randomBytes } from "crypto";
 
 const downloadPath = path.resolve(process.cwd(), "downloads");
-// const ffmpeg = ffmpeg.FFfmpegCommand();
 
 class SocialMediaDownloaderMessageHandler extends BaseMessageHandler {
   constructor(message: Message, client: Client) {
@@ -37,6 +36,10 @@ class SocialMediaDownloaderMessageHandler extends BaseMessageHandler {
       return;
       // }
     } else if (!this.text.match("instagram.com/reel")) {
+      const datalist = await getReelInfo(this.text);
+
+      console.log({ datalist });
+
       this.message.react("❌");
       this.message.reply(
         "Maaf, fitur ini khusus untuk mendownload reels instagram saja."
@@ -99,28 +102,33 @@ class SocialMediaDownloaderMessageHandler extends BaseMessageHandler {
    */
   private async getInstagramContent(url: string) {
     try {
-      const responseUrl = await jarifapi.igvideo(url);
-      const downloadUrl =
-        responseUrl.match(/https:\/\/(.*)"/gi)?.[0]?.replace(/"/gi, "") || "";
+      // const responseUrl = await jarifapi.igvideo(url);
+      // const downloadUrl =
+      //   responseUrl.match(/https:\/\/(.*)"/gi)?.[0]?.replace(/"/gi, "") || "";
+      const downloadUrl = await getReelInfo(url);
 
       if (downloadUrl) {
         this.checkDownloadPath();
 
-        const name = `hiantzz.cloud-${randomBytes(8).toString("hex")}`;
+        const name = `hiantzz.cloud-${randomBytes(8).toString("hex")}`,
+          convertedName = `${name}-converted`;
         const file = fs.createWriteStream(
           path.resolve(downloadPath, `${name}.mp4`)
         );
 
-        https.get(downloadUrl, (response) => {
-          response.pipe(file);
-
+        await Promise.all([
+          https.get(downloadUrl, (response) => {
+            response.pipe(file);
+          }),
           file.on("finish", async () => {
             ffmpeg(file.path as string)
-              .videoCodec("libx264")
-              .save(path.resolve(downloadPath, `${name}-converted.mp4`))
+              // .videoCodec("libx264")
+              .save(path.resolve(downloadPath, `${convertedName}.mp4`))
               .on("end", () => {
+                fs.unlinkSync(file.path as string);
+
                 const media = MessageMedia.fromFilePath(
-                  path.resolve(downloadPath, `${name}-converted.mp4`)
+                  path.resolve(downloadPath, `${convertedName}.mp4`)
                 );
 
                 this.message
@@ -131,16 +139,43 @@ class SocialMediaDownloaderMessageHandler extends BaseMessageHandler {
                     this.message.react("✅");
                   })
                   .finally(() => {
-                    [
-                      file.path as string,
-                      path.resolve(downloadPath, `${name}-converted.mp4`),
-                    ].forEach((filename) => {
-                      fs.unlinkSync(filename);
-                    });
+                    fs.unlinkSync(
+                      path.resolve(downloadPath, `${convertedName}.mp4`)
+                    );
                   });
               });
-          });
-        });
+          }),
+        ]);
+
+        // https.get(downloadUrl, (response) => {
+        //   response.pipe(file);
+
+        //   file.on("finish", async () => {
+        //     ffmpeg(file.path as string)
+        //       // .videoCodec("libx264")
+        //       .save(path.resolve(downloadPath, `${convertedName}.mp4`))
+        //       .on("end", () => {
+        //         fs.unlinkSync(file.path as string);
+
+        //         const media = MessageMedia.fromFilePath(
+        //           path.resolve(downloadPath, `${convertedName}.mp4`)
+        //         );
+
+        //         this.message
+        //           .reply(media, this.message.from, {
+        //             sendMediaAsDocument: false,
+        //           })
+        //           .then(() => {
+        //             this.message.react("✅");
+        //           })
+        //           .finally(() => {
+        //             fs.unlinkSync(
+        //               path.resolve(downloadPath, `${convertedName}.mp4`)
+        //             );
+        //           });
+        //       });
+        //   });
+        // });
       } else {
         this.sendErrorMessage();
       }
