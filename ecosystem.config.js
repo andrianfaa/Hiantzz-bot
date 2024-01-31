@@ -3,9 +3,9 @@ module.exports = {
     {
       name: "hiantzz",
       script: "./build/client.js",
-      watch: true,
+      exec_mode: "cluster",
       max_memory_restart: "250M",
-      instance: 1
+      instances: "max"
     }
   ]
 }
