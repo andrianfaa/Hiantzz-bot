@@ -19,6 +19,10 @@ Berikut daftar perintah yang tersedia saat ini.
 -   ```reels!```     (Instagram reels downloader)
 -   ```tiktok!```     (TikTok downloader)
 
+*Group*
+-   ```hiddentag!```
+-   ```del!```     (Menghapus pesan)
+
 *Developer*
 -   ```ban!```   
 -   ```unban!```

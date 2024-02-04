@@ -20,7 +20,7 @@ dotenv.config();
       args: ["--no-sandbox", "--disable-setuid-sandbox"],
       executablePath: "/usr/bin/google-chrome-stable",
     },
-    webVersion: "2.2405.0",
+    // webVersion: "2.2405.0",
     ffmpegPath: "/usr/bin/ffmpeg",
     authStrategy: new LocalAuth(),
   });
@@ -36,18 +36,20 @@ dotenv.config();
   });
 
   client.on("ready", async () => {
-    const to = process.env.HIANTZZ_LOG_ID
-      ? `${process.env.HIANTZZ_LOG_ID}@g.us`
-      : `${process.env.HIANTZZ_DEVELOPER_ID}@c.us`;
+    if (process.env.NODE_ENV !== "development") {
+      const to = process.env.HIANTZZ_LOG_ID
+        ? `${process.env.HIANTZZ_LOG_ID}@g.us`
+        : `${process.env.HIANTZZ_DEVELOPER_ID}@c.us`;
 
-    await client
-      .sendMessage(to, "Bot is ready!")
-      .then(() => {
-        console.info("Client is ready!");
-      })
-      .catch((error) => {
-        console.error("Client error: ", error);
-      });
+      await client
+        .sendMessage(to, "Bot online!")
+        .then(() => {})
+        .catch((error) => {
+          console.error("Client error: ", error);
+        });
+    }
+
+    console.info("Client is ready!");
   });
 
   // Automatically reject incoming call

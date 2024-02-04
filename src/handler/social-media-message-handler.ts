@@ -1,4 +1,3 @@
-// import jarifapi from "jarif-api";
 import { randomBytes } from "crypto";
 import ffmpeg from "fluent-ffmpeg";
 import https from "https";
@@ -21,6 +20,13 @@ class SocialMediaDownloaderMessageHandler extends BaseMessageHandler {
    * Instagram reels downloader
    */
   async reelsDownloader() {
+    const isUserBanned = await this.isBanned();
+
+    if (isUserBanned) {
+      this.sendBannedMessage();
+      return;
+    }
+
     if (!this.text) {
       let tutorial = await templateLoader("social-media");
 
@@ -34,11 +40,8 @@ class SocialMediaDownloaderMessageHandler extends BaseMessageHandler {
           )
       );
       return;
-      // }
     } else if (!this.text.match("instagram.com/reel")) {
       const datalist = await getReelInfo(this.text);
-
-      console.log({ datalist });
 
       this.message.react("❌");
       this.message.reply(
@@ -60,6 +63,13 @@ class SocialMediaDownloaderMessageHandler extends BaseMessageHandler {
    * TikTok downloader
    */
   async tiktokDownloader() {
+    const isUserBanned = await this.isBanned();
+
+    if (isUserBanned) {
+      this.sendBannedMessage();
+      return;
+    }
+
     if (!this.text) {
       let tutorial = await templateLoader("social-media");
 
@@ -102,9 +112,6 @@ class SocialMediaDownloaderMessageHandler extends BaseMessageHandler {
    */
   private async getInstagramContent(url: string) {
     try {
-      // const responseUrl = await jarifapi.igvideo(url);
-      // const downloadUrl =
-      //   responseUrl.match(/https:\/\/(.*)"/gi)?.[0]?.replace(/"/gi, "") || "";
       const downloadUrl = await getReelInfo(url);
 
       if (downloadUrl) {
@@ -116,66 +123,39 @@ class SocialMediaDownloaderMessageHandler extends BaseMessageHandler {
           path.resolve(downloadPath, `${name}.mp4`)
         );
 
-        await Promise.all([
-          https.get(downloadUrl, (response) => {
-            response.pipe(file);
-          }),
-          file.on("finish", async () => {
-            ffmpeg(file.path as string)
-              // .videoCodec("libx264")
-              .save(path.resolve(downloadPath, `${convertedName}.mp4`))
-              .on("end", () => {
-                fs.unlinkSync(file.path as string);
+        https.get(downloadUrl, (response) => {
+          response.pipe(file);
+        });
 
-                const media = MessageMedia.fromFilePath(
-                  path.resolve(downloadPath, `${convertedName}.mp4`)
-                );
+        file.on("finish", async () => {
+          ffmpeg(file.path as string)
+            .videoCodec("libx264")
+            .output(path.resolve(downloadPath, `${convertedName}.mp4`))
+            .on("error", (error) => {
+              console.error(error?.message || "FFMPEG Reels error");
+              this.sendErrorMessage(error?.message);
+            })
+            .on("end", () => {
+              fs.unlinkSync(file.path as string);
 
-                this.message
-                  .reply(media, this.message.from, {
-                    sendMediaAsDocument: false,
-                  })
-                  .then(() => {
-                    this.message.react("✅");
-                  })
-                  .finally(() => {
-                    fs.unlinkSync(
-                      path.resolve(downloadPath, `${convertedName}.mp4`)
-                    );
-                  });
-              });
-          }),
-        ]);
+              const media = MessageMedia.fromFilePath(
+                path.resolve(downloadPath, `${convertedName}.mp4`)
+              );
 
-        // https.get(downloadUrl, (response) => {
-        //   response.pipe(file);
-
-        //   file.on("finish", async () => {
-        //     ffmpeg(file.path as string)
-        //       // .videoCodec("libx264")
-        //       .save(path.resolve(downloadPath, `${convertedName}.mp4`))
-        //       .on("end", () => {
-        //         fs.unlinkSync(file.path as string);
-
-        //         const media = MessageMedia.fromFilePath(
-        //           path.resolve(downloadPath, `${convertedName}.mp4`)
-        //         );
-
-        //         this.message
-        //           .reply(media, this.message.from, {
-        //             sendMediaAsDocument: false,
-        //           })
-        //           .then(() => {
-        //             this.message.react("✅");
-        //           })
-        //           .finally(() => {
-        //             fs.unlinkSync(
-        //               path.resolve(downloadPath, `${convertedName}.mp4`)
-        //             );
-        //           });
-        //       });
-        //   });
-        // });
+              this.message
+                .reply(media, this.message.from, {
+                  sendMediaAsDocument: false,
+                })
+                .then(() => {
+                  this.message.react("✅");
+                })
+                .finally(() => {
+                  fs.unlinkSync(
+                    path.resolve(downloadPath, `${convertedName}.mp4`)
+                  );
+                });
+            });
+        });
       } else {
         this.sendErrorMessage();
       }

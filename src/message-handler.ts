@@ -1,13 +1,18 @@
 import { type Client, type Message } from "whatsapp-web.js";
 import { UserBanned } from "./database";
 import { WhatsAppSticker } from "./features";
-import { AIMessageHandler, BaseMessageHandler } from "./handler";
+import {
+  AIMessageHandler,
+  BaseMessageHandler,
+  GroupMessageHandler,
+} from "./handler";
 import SocialMediaDownloaderMessageHandler from "./handler/social-media-message-handler";
 import { templateLoader } from "./utils";
 
 class MessageHandler extends BaseMessageHandler {
   ai: AIMessageHandler;
   socialMediaDownloader: SocialMediaDownloaderMessageHandler;
+  groupWhatsapp: GroupMessageHandler;
 
   /**
    * MessageHandler
@@ -23,11 +28,29 @@ class MessageHandler extends BaseMessageHandler {
       message,
       client
     );
+    this.groupWhatsapp = new GroupMessageHandler(message, client);
 
     this.switchCommand();
   }
 
   private switchCommand() {
+    if (
+      this.message.from === `${process.env.HIANTZZ_STICKER_GROUP_ID || ""}@g.us`
+    ) {
+      if (!this.message.hasMedia) {
+        // this.sendErrorMessage("Maaf, grup ini khusus untuk sticker.");
+        this.message.delete(true);
+        this.client.sendMessage(
+          this.message.from,
+          "Maaf, grup ini khusus untuk membuat sticker."
+        );
+        return;
+      }
+
+      this.createSticker();
+      return;
+    }
+
     switch (this.command) {
       case "bot":
         return this.message.reply("Hah?");
@@ -69,6 +92,13 @@ class MessageHandler extends BaseMessageHandler {
 
       case "tiktok":
         return this.socialMediaDownloader.tiktokDownloader();
+
+      // Group Management
+      case "hiddentag":
+        return this.groupWhatsapp.hiddenTag();
+
+      case "del":
+        return this.groupWhatsapp.deleteMessage();
 
       // Special
       case "ban":
@@ -134,6 +164,7 @@ class MessageHandler extends BaseMessageHandler {
           sendMediaAsSticker: true,
           stickerAuthor: "Hiantzz!",
           stickerName: "Sticker!",
+          stickerCategories: ["Hiantzz! sticker"],
         })
         .finally(async () => {
           const chat: any = await this.message.getChat();
@@ -145,7 +176,15 @@ class MessageHandler extends BaseMessageHandler {
             );
 
             if (bot.isAdmin) {
+              if (this.message.hasQuotedMsg) {
+                const quotedMessage = await this.message.getQuotedMessage();
+
+                quotedMessage.delete(true);
+              }
+
               this.message.delete(true);
+            } else {
+              this.message.react("✅");
             }
           } else {
             this.message.react("✅");

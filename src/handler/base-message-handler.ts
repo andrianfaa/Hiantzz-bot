@@ -56,17 +56,13 @@ class BaseMessageHandler {
   }
 
   sendErrorMessage(error?: any) {
-    if (error) {
+    if (error && typeof error !== "string") {
       let message = (error?.message as string) || "Bot error";
-
-      console.log({ message });
-
-      message.replaceAll(/RsnChat|AxiosError:/gi, "");
 
       if (process.env.HIANTZZ_LOG_ID) {
         this.client.sendMessage(
           `${process.env.HIANTZZ_LOG_ID || ""}@g.us`,
-          message.trim()
+          message.replace(/RsnChat|AxiosError:/gi, "").trim()
         );
       } else {
         console.error(message.trim());
@@ -75,7 +71,9 @@ class BaseMessageHandler {
 
     this.message.react("❌");
     this.message.reply(
-      "Maaf, sepertinya ada yang error dengan fitur ini ૮(˶╥︿╥)ა"
+      typeof error === "string"
+        ? error
+        : "Maaf, sepertinya ada yang error dengan fitur ini ૮(˶╥︿╥)ა"
     );
   }
 }
