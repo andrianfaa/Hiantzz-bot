@@ -20,43 +20,46 @@ class SocialMediaDownloaderMessageHandler extends BaseMessageHandler {
    * Instagram reels downloader
    */
   async reelsDownloader() {
-    const isUserBanned = await this.isBanned();
+    this.message.reply("Maaf, fitur ini sedang dalam perbaikan.");
+    return;
 
-    if (isUserBanned) {
-      this.sendBannedMessage();
-      return;
-    }
+    // const isUserBanned = await this.isBanned();
 
-    if (!this.text) {
-      let tutorial = await templateLoader("social-media");
+    // if (isUserBanned) {
+    //   this.sendBannedMessage();
+    //   return;
+    // }
 
-      this.message.react("❌");
-      this.message.reply(
-        tutorial
-          .replace(/_COMMAND_/gi, "reels!")
-          .replace(
-            /_URL_/gi,
-            "https://www.instagram.com/reel/CzLzuUuJf5V/?igsh=eThxd2x0N2Z0cGkx"
-          )
-      );
-      return;
-    } else if (!this.text.match("instagram.com/reel")) {
-      const datalist = await getReelInfo(this.text);
+    // if (!this.text) {
+    //   let tutorial = await templateLoader("social-media");
 
-      this.message.react("❌");
-      this.message.reply(
-        "Maaf, fitur ini khusus untuk mendownload reels instagram saja."
-      );
-      return;
-    }
+    //   this.message.react("❌");
+    //   this.message.reply(
+    //     tutorial
+    //       .replace(/_COMMAND_/gi, "reels!")
+    //       .replace(
+    //         /_URL_/gi,
+    //         "https://www.instagram.com/reel/CzLzuUuJf5V/?igsh=eThxd2x0N2Z0cGkx"
+    //       )
+    //   );
+    //   return;
+    // } else if (!this.text.match("instagram.com/reel")) {
+    //   const datalist = await getReelInfo(this.text);
 
-    this.message.react("⏳");
+    //   this.message.react("❌");
+    //   this.message.reply(
+    //     "Maaf, fitur ini khusus untuk mendownload reels instagram saja."
+    //   );
+    //   return;
+    // }
 
-    try {
-      this.getInstagramContent(this.text);
-    } catch (error) {
-      this.sendErrorMessage(error);
-    }
+    // this.message.react("⏳");
+
+    // try {
+    //   this.getInstagramContent(this.text);
+    // } catch (error) {
+    //   this.sendErrorMessage(error);
+    // }
   }
 
   /**
